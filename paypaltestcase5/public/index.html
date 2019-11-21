@@ -1,0 +1,61 @@
+<html lang="en">
+
+<head>
+  <title>PayPal Demo Project using APM API</title>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("payout-btn").addEventListener("click", function () {
+        initiatePayout();
+      });
+    });
+
+    function initiatePayout() {
+      const request = new XMLHttpRequest();
+      request.onreadystatechange = function () {
+        if (isXhrReady(request)) {
+          const response = JSON.parse(request.responseText);
+          document.getElementById("status-label").innerHTML = "STATUS: " + response.status;
+          getStatus();
+        }
+      };
+      request.open("POST", "/payout", true);
+      request.setRequestHeader("Content-Type", "application/json");
+      request.send(JSON.stringify({
+        paymentData: "the payment data"
+      }));
+    }
+
+    function isXhrReady(xhrRequest) {
+      return xhrRequest.readyState === XMLHttpRequest.DONE && xhrRequest.status === 200;
+    }
+    
+    function getStatus() {
+      let t = setInterval(function(){
+        const request = new XMLHttpRequest();
+        request.onreadystatechange = function () {
+          if (isXhrReady(request)) {
+            const response = JSON.parse(request.responseText);
+            document.getElementById("status-label").innerHTML = "STATUS: " + response.status;
+            if (response.status === "COMPLETED") {
+              clearInterval(t);
+            }
+          }
+        };
+        request.open("GET", "/status", true);
+        request.setRequestHeader("Content-Type", "application/json");
+        request.send();
+      }, 5000);
+    }
+  </script>
+</head>
+<body>
+  <h1>PayPal Test Case 5</h1>
+  <h2>PayPal w/ APM API. Standalone credit batch.</h2>
+  <p>Gambling merchant initiates a standalone credit batch via his backend.</p>
+  <div>
+    <input type="button" value="Payout"
+           id="payout-btn"/>
+    <p id=status-label>Press payout button</p>
+  </div>
+</body>
+</html>

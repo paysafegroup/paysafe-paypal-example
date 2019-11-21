@@ -1,0 +1,78 @@
+<html lang="en">
+<head>
+  <title>PayPal Demo Project using Paysafe Checkout</title>
+  <script src="https://hosted.paysafe.com/checkout/v1/latest/paysafe.checkout.min.js"></script>
+  <script>
+    const singleUseTokenApiKey = "T1QtMjE5OTUwOkItcWEyLTAtNWIzZTIwMTUtMC0zMDJjMDIxNDNmNzQ3MmFmZTQ0ZTM0NzlmZDM" +
+      "1MDllOTI4ZWZjZDNkMzAzMjZiNTQwMjE0MDIwZWI0MjhiODgzOGIxNzRjNTQ4OTFiMmNiYTA3N2RiNzZkMTkxOQ==";
+
+    const options = {
+      amount: 105,
+      paymentMethodHeaders: JSON.stringify({
+        simulator: "EXTERNAL"
+      }),
+      environment: "TEST",
+      preferredPaymentMethod: "PAYPAL",
+      currency: "USD",
+      companyName: "Example Inc.",
+      holderName: "Nikolay Diyanov",
+      paymentMethodDetails: {
+        paypal: {
+          shippingPreference: "SET_PROVIDED_ADDRESS",
+        },
+      },
+    };
+
+    document.addEventListener("DOMContentLoaded", function () {
+      fetchShippingAddress();
+
+      document.getElementById("payNow").addEventListener("click", function () {
+        paysafe.checkout.setup(singleUseTokenApiKey, options, paysafeResultCallback);
+      });
+    });
+
+    function fetchShippingAddress() {
+      const shippingAddressRequest = new XMLHttpRequest();
+      shippingAddressRequest.onreadystatechange = function() {
+        if(isXhrReady(shippingAddressRequest)) {
+          options.shippingAddress = JSON.parse(shippingAddressRequest.responseText);
+        }
+      };
+      shippingAddressRequest.open("GET", "/shippingaddress", true);
+      shippingAddressRequest.setRequestHeader("Content-Type", "application/json");
+      shippingAddressRequest.send();
+    }
+
+    function paysafeResultCallback(instance, error, result) {
+      const confirmPaymentRequest = new XMLHttpRequest();
+      confirmPaymentRequest.onreadystatechange = function () {
+        if (isXhrReady(confirmPaymentRequest)) {
+          if (JSON.parse(confirmPaymentRequest.responseText).status === "success") {
+            instance.showSuccessScreen("Good job!");
+          } else {
+            instance.showFailureScreen("Baaad job!");
+          }
+        }
+      };
+      confirmPaymentRequest.open("POST", "/payandsettle", true);
+      confirmPaymentRequest.setRequestHeader("Content-Type", "application/json");
+      confirmPaymentRequest.send(JSON.stringify({
+        token: result.token
+      }));
+    }
+
+    function isXhrReady(xhrRequest) {
+      return xhrRequest.readyState === XMLHttpRequest.DONE && xhrRequest.status === 200;
+    }
+  </script>
+</head>
+<body>
+  <h1>PayPal Test Case 4</h1>
+  <h2>PayPal w/ Paysafe Checkout. intentSale = false</h2>
+  <p>Retail 2-step flow using Paysafe checkout. Merchant should be able to obtain the shipping address to qualify for
+  seller protection, before finishing the transaction. After receiving payment COMPLETED callback merchant manually
+  initiates a settlement.</p>
+  <button id="payNow" type="button"> Pay now </button>
+    <label id="token"></label>
+  </body>
+</html>

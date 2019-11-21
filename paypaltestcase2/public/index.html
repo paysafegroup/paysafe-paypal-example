@@ -1,0 +1,46 @@
+<html lang="en">
+
+<head>
+  <title>PayPal Demo Project using APM API</title>
+  <script>
+    let openedWindow;
+
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("pay-now").addEventListener("click", function () {
+        initiatePurchase();
+        openedWindow = window.open("", "_blank");
+      });
+    });
+
+    function initiatePurchase() {
+      const request = new XMLHttpRequest();
+      request.onreadystatechange = function () {
+        if (isXhrReady(request)) {
+          const response = JSON.parse(request.responseText);
+          openedWindow.location.href = response.links[1].href;
+        }
+      };
+      request.open("POST", "/pay", true);
+      request.setRequestHeader("Content-Type", "application/json");
+      request.send(JSON.stringify({
+        paymentData: "the payment data"
+      }));
+    }
+
+    function isXhrReady(xhrRequest) {
+      return xhrRequest.readyState === XMLHttpRequest.DONE && xhrRequest.status === 200;
+    }
+  </script>
+</head>
+<body>
+  <h1>PayPal Test Case 2</h1>
+  <h2>PayPal w/ APM API, intentSale = false</h2>
+  <p>Retail 2-step flow. Merchant initiates a payment through his backend. After receiving payment COMPLETED callback
+  merchant manually initiates a settlement.</p>
+  <div>
+    <input type="image"
+           src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png"
+           id="pay-now"/>
+  </div>
+</body>
+</html>

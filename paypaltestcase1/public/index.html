@@ -1,0 +1,49 @@
+<html lang="en">
+
+<head>
+  <title>PayPal Demo Project using APM API</title>
+  <script>
+    let openedWindow;
+
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("pay-now").addEventListener("click", function () {
+        initiatePurchase();
+        openedWindow = window.open("", "_blank");
+      });
+    });
+
+    function initiatePurchase() {
+      const request = new XMLHttpRequest();
+      request.onreadystatechange = function () {
+        if (isXhrReady(request)) {
+          const response = JSON.parse(request.responseText);
+          openedWindow.location.href = response.links[1].href;
+        }
+      };
+      request.open("POST", "/pay", true);
+      request.setRequestHeader("Content-Type", "application/json");
+      request.send(JSON.stringify({
+        paymentData: "the payment data"
+      }));
+    }
+
+    function isXhrReady(xhrRequest) {
+      return xhrRequest.readyState === XMLHttpRequest.DONE && xhrRequest.status === 200;
+    }
+  </script>
+</head>
+<body>
+  <h1>PayPal Test Case 1</h1>
+  <h2>PayPal w/ APM API. intentSale = true.</h2>
+  <p>Gambling merchant initiates the payment via his backend. <code>forceIntentSale</code> flag is set to <code>true</code>.
+  Merchant should use the <code>/initialpayments</code> endpoint in order to be able to verify <code>payerId</code>
+  before finalizing the transaction.</p>
+  <p>Merchant should be able to verify the <code>payerId</code> before finalizing the transaction. It is returned from the
+  initial payment lookup endpoint, which should be triggered before token is consumed.</p>
+  <div>
+    <input type="image"
+           src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png"
+           id="pay-now"/>
+  </div>
+</body>
+</html>
